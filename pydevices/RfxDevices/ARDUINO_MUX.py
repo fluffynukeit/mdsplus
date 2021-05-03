@@ -87,20 +87,21 @@ class ARDUINO_MUX(Device):
                 raise mdsExceptions.TclFAILED_ESSENTIAL
         else:
             try:
-                ipAddress = self.ip.data()
+                ipAddress = self.arduino_ip.data()
             except:
                 print('IP address not defined')
                 raise mdsExceptions.TclFAILED_ESSENTIAL
             try:
                  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                  sock.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1 )
-                 server_address = (ipAddress, 23)
+                 server_address = (ipAddress, 8888)
                  print('connecting ...')
                  sock.connect(server_address)
             except:
                 print('Cannot connect to '+ ipAddress)
                 raise mdsExceptions.TclFAILED_ESSENTIAL
-
+            
+            print('Connected')
         commands = ['PRGSTART']
         for mpx in range(2):
             line1 = getattr(self, 'mux%d_wline1' % (mpx + 1)).data()
@@ -167,13 +168,13 @@ class ARDUINO_MUX(Device):
         if isSerial:
             ans = self.doSerialCommand(ser, command)
         else:
-            ans = self.doTcpCommand(ser, command)
+            ans = self.doTcpCommand(sock, command)
         if self.mux1_read_back.data() == 'YES':
             command = 'RM1'
             if isSerial:
                 ans = self.doSerialCommand(ser, command)
             else:
-                ans = self.doTcpCommand(ser, command)
+                ans = self.doTcpCommand(sock, command)
             self.mux1_sel_read.putData(int(ans))
           
           
@@ -183,12 +184,14 @@ class ARDUINO_MUX(Device):
         if isSerial:
             ans = self.doSerialCommand(ser, command)
         else:
-            ans = self.doTcpCommand(ser, command)
+            ans = self.doTcpCommand(sock, command)
         if self.mux2_read_back.data() == 'YES':
             command = 'RM2'
             if isSerial:
                 ans = self.doSerialCommand(ser, command)
             else:
-                ans = self.doTcpCommand(ser, command)
+                ans = self.doTcpCommand(sock, command)
             self.mux2_sel_read.putData(int(ans))
-        
+        if not isSerial:
+	    self.doTcpCommand(sock, "STOP")
+            sock.close()
