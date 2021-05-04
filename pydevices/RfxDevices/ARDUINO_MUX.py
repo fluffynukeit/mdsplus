@@ -66,9 +66,12 @@ class ARDUINO_MUX(Device):
         print('================= ARDUINO_MUX Init ===============')
         if self.mode.data() == 'SERIAL':
             isSerial = True
+            maxDigital = 13
         else:
             isSerial = False;
-            
+            maxDigital = 9
+        outLines = []   
+        inLines = []   
         if isSerial:
             try:
                 serName = self.arduino_port.data()
@@ -103,6 +106,16 @@ class ARDUINO_MUX(Device):
             line1 = getattr(self, 'mux%d_wline1' % (mpx + 1)).data()
             line2 = getattr(self, 'mux%d_wline2' % (mpx + 1)).data()
             line3 = getattr(self, 'mux%d_wline2' % (mpx + 1)).data()
+            if line1 < 0 or line1 > maxDigital or line2 < 0 or line2 > maxDigital or line3 < 0 or line3 > maxDigital:
+                print('Only digital lines between 0 and '+maxDigital+' can be used')
+                raise mdsExceptions.TclFAILED_ESSENTIAL
+            if line1 in inLines or line2 in inLines or line3 in inLines:
+                print('Same line used as input and output')
+                raise mdsExceptions.TclFAILED_ESSENTIAL
+            outLines.append(line1)
+            outLines.append(line2)
+            outLines.append(line3)
+               
             mask = (1 << line1)|(1 << line2)|(1 << line3)
             maskStr = format(mask, '04X')
             for m in range(8):
@@ -116,13 +129,19 @@ class ARDUINO_MUX(Device):
                 bitsStr = format(bits, '04X')
                 currCommand = 'WM'+str(mpx+1)+str(m)+maskStr+bitsStr+'CM'+str(mpx+1)+format(m, '02X')
                 commands.append(currCommand)
-            print( getattr(self, 'mux%d_read_back' % (mpx + 1)))
-            print( getattr(self, 'mux%d_read_back' % (mpx + 1)).data())
             if getattr(self, 'mux%d_read_back' % (mpx + 1)).data() == 'YES':
-                print('CAZZONE')
+                if line1 < 0 or line1 > maxDigital or line2 < 0 or line2 > maxDigital or line3 < 0 or line3 > maxDigital:
+                    print('Only digital lines between 0 and '+ maxDigital + ' can be used')
+                    raise mdsExceptions.TclFAILED_ESSENTIAL
                 line1 = getattr(self, 'mux%d_rline1' % (mpx + 1)).data()
                 line2 = getattr(self, 'mux%d_rline2' % (mpx + 1)).data()
                 line3 = getattr(self, 'mux%d_rline3' % (mpx + 1)).data()
+                if line1 in outLines or line2 in outLines or line3 in outLines:
+                    print('Same line used as input and output')
+                    raise mdsExceptions.TclFAILED_ESSENTIAL
+                inLines.append(line1)
+                inLines.append(line2)
+                inLines.append(line3)
                 mask = (1 << line1)|(1 << line2)|(1 << line3)
                 maskStr = format(mask, '04X')
                 for m in range(8):
