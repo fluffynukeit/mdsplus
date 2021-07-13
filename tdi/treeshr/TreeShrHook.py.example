@@ -25,9 +25,9 @@
 
 
 def TreeShrHook(args):
-  """
+    """
     This example TreeShrHook will print out the incomming dictionary (args)
-  for enabled hooks.  To use:
+    for enabled hooks.  To use:
 
     copy this file to someplace in your MDS_PATH, removing the .example extension
 
@@ -50,8 +50,8 @@ def TreeShrHook(args):
     TCL> exit
 
     NOTE: For local, distributed, and thick clients this routine runs in the user's context and
-    on the user's computer.  It would have to be installed on all client computers to gather 
+    on the user's computer.  It would have to be installed on all client computers to gather
     useful information.
 
-  """
-  print(args)
+    """
+    print(args)
