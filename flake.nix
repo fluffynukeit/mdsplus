@@ -47,7 +47,9 @@
 			nativeBuildInputs = [ makeWrapper ];
 			} ''
 				for b in $(ls ${mdsplus}/bin); do
-					makeWrapper ${mdsplus}/bin/$b $out/bin/$b --set MDSPLUS_DIR "${mdsplus}"
+					makeWrapper ${mdsplus}/bin/$b $out/bin/$b --set MDSPLUS_DIR "${mdsplus}" \
+						--set JAVA_HOME ${jdk8.home} \
+						--prefix PATH : ${jre8}/bin/
 				done
 				ln -s ${mdsplus} $out/mdsplus-install-location
 			'';
